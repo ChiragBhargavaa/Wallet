@@ -1,0 +1,23 @@
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524656668,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524663845,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:App.constructor","message":"after setSize","data":{"w":2471,"h":0},"timestamp":1769524663859,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524667013,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:App.constructor","message":"after setSize","data":{"w":2471,"h":0},"timestamp":1769524667027,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524671873,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:App.constructor","message":"after setSize","data":{"w":2471,"h":0},"timestamp":1769524671889,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"Hyperspeed.jsx:tick","message":"canvas zero size in loop","data":{"cw":4942,"ch":0},"timestamp":1769524671896,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524673615,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:App.constructor","message":"after setSize","data":{"w":2471,"h":0},"timestamp":1769524673626,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"Hyperspeed.jsx:tick","message":"canvas zero size in loop","data":{"cw":4942,"ch":0},"timestamp":1769524673632,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524685146,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:App.constructor","message":"after setSize","data":{"w":2471,"h":0},"timestamp":1769524685164,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"Hyperspeed.jsx:rAF","message":"container one frame later","data":{"w":2471,"h":0},"timestamp":1769524685168,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"Hyperspeed.jsx:tick","message":"canvas zero size in loop","data":{"cw":4942,"ch":0},"timestamp":1769524685173,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524724740,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:App.constructor","message":"after setSize","data":{"w":2471,"h":0},"timestamp":1769524724753,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"Hyperspeed.jsx:rAF","message":"container one frame later","data":{"w":2471,"h":0},"timestamp":1769524724759,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"Hyperspeed.jsx:tick","message":"canvas zero size in loop","data":{"cw":4942,"ch":0},"timestamp":1769524724766,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"Hyperspeed.jsx:IIFE","message":"container before App","data":{"hasContainer":true,"offsetWidth":2471,"offsetHeight":0},"timestamp":1769524749142,"sessionId":"debug-session","hypothesisId":"H1_H2"}
+{"location":"Hyperspeed.jsx:App.constructor","message":"after setSize","data":{"w":2471,"h":0},"timestamp":1769524749155,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"Hyperspeed.jsx:rAF","message":"container one frame later","data":{"w":2471,"h":0},"timestamp":1769524749160,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"Hyperspeed.jsx:tick","message":"canvas zero size in loop","data":{"cw":4942,"ch":0},"timestamp":1769524749169,"sessionId":"debug-session","hypothesisId":"H4"}

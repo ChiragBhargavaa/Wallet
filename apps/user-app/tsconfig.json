@@ -12,7 +12,9 @@
     "**/*.tsx",
     "next-env.d.ts",
     "next.config.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../providers.tsx",
+    "types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"

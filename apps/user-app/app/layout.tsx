@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "../../providers";
 
 export const metadata: Metadata = {
   title: "Wallet",
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" style={{ height: "100%", width: "100%", overflow: "hidden" }}>
       <body style={{ margin: 0, minHeight: "100vh", height: "100%", width: "100%", overflow: "hidden" }}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

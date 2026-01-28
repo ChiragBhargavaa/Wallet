@@ -22,6 +22,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "jotai": "^2.17.0",
     "postprocessing": "^6.38.2",
     "three": "^0.182.0"
   }

@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import React, { useState, Suspense, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+
+const GOOGLE_ACCESS_DENIED_MESSAGE =
+  "Sign in with Google is only for existing accounts. Please register first.";
 
 function LoginForm() {
   const router = useRouter();
@@ -16,6 +19,15 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Show toast when redirected back after Google sign-in denied (user not registered)
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (err === "AccessDenied" || err === "Callback") {
+      toast.error(GOOGLE_ACCESS_DENIED_MESSAGE);
+      setError(GOOGLE_ACCESS_DENIED_MESSAGE);
+    }
+  }, [searchParams]);
 
   const isUser = role === "user";
   const accentRing = isUser
@@ -31,23 +43,58 @@ function LoginForm() {
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError("Please enter your email address.");
+      toast.error("Please enter your email address.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (!password) {
+      setError("Please enter your password.");
+      toast.error("Please enter your password.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await signIn("credentials", {
-        email,
+        email: trimmedEmail,
         password,
+        role,
         redirect: false,
       });
       if (res?.error) {
-        setError("Invalid email or password.");
+        const message =
+          role === "merchant"
+            ? "Invalid email or password, or this account is not a merchant. Sign in with the User option if you are a customer."
+            : "Invalid email or password, or this account is for merchants. Please use the Merchant option to sign in.";
+        setError(message);
+        toast.error(message);
         return;
       }
       toast.success("Signed in successfully!");
-      router.push("/user");
+      router.push(callbackUrl);
       router.refresh();
+    } catch {
+      const message = "Something went wrong. Please try again.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    const url = new URL(callbackUrl, window.location.origin);
+    url.searchParams.set("from_oauth", "google");
+    signIn("google", { callbackUrl: url.pathname + url.search });
   };
 
   return (
@@ -148,6 +195,21 @@ function LoginForm() {
             </button>
           </form>
 
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-white/40">
+            <span className="h-px flex-1 bg-white/10" />
+            or
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="flex items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/15"
+          >
+            <img src="/google-login.png" alt="Google Logo" className="h-5 w-5" />
+            Continue with Google
+          </button>
+
           <p className="text-center text-sm text-white/60">
             Don&apos;t have an account?{" "}
             <Link
@@ -172,9 +234,32 @@ function LoginForm() {
   );
 }
 
+const loadingFallback = (
+  <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+    Loading…
+  </div>
+);
+
 export default function LoginPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      const path = session.user?.role === "merchant" ? "/merchant" : "/user";
+      router.replace(path);
+    }
+  }, [status, session, router]);
+
+  if (status === "loading") {
+    return loadingFallback;
+  }
+  if (status === "authenticated") {
+    return loadingFallback;
+  }
+
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">Loading…</div>}>
+    <Suspense fallback={loadingFallback}>
       <LoginForm />
     </Suspense>
   );

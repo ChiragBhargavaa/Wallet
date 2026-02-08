@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import Hyperspeed from "@repo/ui/Hyperspeed";
+import { AuthenticatedRedirect } from "../components/authenticated-redirect";
 
 const Logo = ({ className = "" }: { className?: string }) => (
   <div className={`flex items-center gap-2 ${className}`}>
@@ -17,6 +19,10 @@ const Logo = ({ className = "" }: { className?: string }) => (
 
 export default function Home() {
   return (
+    <>
+      <Suspense fallback={null}>
+        <AuthenticatedRedirect />
+      </Suspense>
     <main
       className="relative min-h-screen w-full"
       style={{
@@ -86,9 +92,7 @@ export default function Home() {
       <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-sm text-gray-400 font-medium drop-shadow-lg">
         Copyright © 2026 Wallet. All rights reserved.
       </p>
-
-      
-      
     </main>
+    </>
   );
 }

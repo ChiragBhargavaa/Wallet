@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 
 function RegisterForm() {
   const router = useRouter();
@@ -32,43 +32,71 @@ function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError("Please enter your email address.");
+      toast.error("Please enter your email address.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (!/[A-Za-z]/.test(password)) {
+      setError("Password must contain at least one letter.");
+      toast.error("Password must contain at least one letter.");
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number.");
+      toast.error("Password must contain at least one number.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name || undefined, email, password, role }),
+        body: JSON.stringify({
+          name: name.trim() || undefined,
+          role,
+          email: trimmedEmail,
+          password,
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as {
-        error?: string | { email?: string[]; password?: string[] };
+        error?: string;
+        fieldErrors?: { email?: string[]; password?: string[]; name?: string[] };
       };
 
       if (!res.ok) {
-        if (typeof data.error === "string") {
-          setError(data.error);
-        } else if (data.error && typeof data.error === "object") {
-          const msg =
-            (data.error as { email?: string[] }).email?.[0] ??
-            (data.error as { password?: string[] }).password?.[0] ??
-            "Something went wrong. Please try again.";
-          setError(msg);
-        } else {
-          setError("Something went wrong. Please try again.");
-        }
+        const msg =
+          typeof data.error === "string"
+            ? data.error
+            : data.fieldErrors?.email?.[0] ??
+              data.fieldErrors?.password?.[0] ??
+              data.fieldErrors?.name?.[0] ??
+              "Something went wrong. Please try again.";
+        setError(msg);
+        toast.error(msg);
         return;
       }
-
-      const signInRes = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      if (signInRes?.error) {
-        router.push("/login?registered=1");
-        return;
-      }
-      router.push("/");
+      toast.success("Account created. Please sign in.");
+      router.push("/login?registered=1");
       router.refresh();
+    } catch {
+      const msg = "Something went wrong. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +200,7 @@ function RegisterForm() {
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password (min 8 characters)"
+                  placeholder="min 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

@@ -4,9 +4,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const registerSchema = z.object({
-  name: z.string().max(255).optional(),
-  email: z.string().email(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().max(255).optional().transform((v) => (v && v.trim() ? v.trim() : undefined)),
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address").transform((v) => v.trim().toLowerCase()),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Za-z]/, "Password must contain at least one letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
   role: z.enum(["user", "merchant"]).default("user"),
 });
 
@@ -16,8 +20,15 @@ export async function POST(request: Request) {
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstError =
+        fieldErrors.email?.[0] ??
+        fieldErrors.password?.[0] ??
+        fieldErrors.name?.[0] ??
+        fieldErrors.role?.[0] ??
+        "Invalid input. Please check your details.";
       return NextResponse.json(
-        { error: parsed.error.flatten().fieldErrors },
+        { error: firstError, fieldErrors },
         { status: 400 }
       );
     }
@@ -40,15 +51,15 @@ export async function POST(request: Request) {
     await prisma.user.create({
       data: {
         email,
-        name: name ?? null,
+        name: name && name.trim() ? name.trim() : null,
         password: hashedPassword,
-        role: role === "merchant" ? "MERCHANT" : "USER",
+        role,
       },
     });
 
     return NextResponse.json(
-      { message: "Account created successfully." },
-      { status: 201 }
+      { message: "Account created successfully." , success: true },
+      { status: 201 },
     );
   } catch (err) {
     // Log the real error so you can see it in the terminal (fixes 500 debugging)

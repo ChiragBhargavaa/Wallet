@@ -6,6 +6,10 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { IoMdSettings } from "react-icons/io";
+import { FaList } from "react-icons/fa6";
+import { GoHomeFill } from "react-icons/go";
+
 export default function UserLayout({
   children,
 }: { children: React.ReactNode }) {
@@ -22,7 +26,7 @@ export default function UserLayout({
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
         Loading…
       </div>
     );
@@ -31,8 +35,15 @@ export default function UserLayout({
   if (!session) return null;
 
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-white">
-      <aside className="w-[5vw] min-w-16 border-r border-white/10 bg-black/40" />
+    <div className="flex min-h-screen bg-black text-white">
+      <aside className="w-[5vw] min-w-16 border-r flex flex-col justify-center items-center
+      gap-[2vh] border-white/10 bg-black text-gray-400/60">
+      <GoHomeFill className="w-8 h-8 hover:text-white/80 transition" />
+      <FaList className="w-8 h-8 hover:text-white/80 transition" />
+      <IoMdSettings className="w-8 h-8 hover:text-white/80 transition" />
+
+      </aside>
+
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 md:px-6">
           <Link href="/user" className="flex items-center gap-2">

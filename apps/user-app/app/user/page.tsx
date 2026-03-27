@@ -28,10 +28,22 @@ export default async function UserHome() {
     orderBy: { startTime: "desc" },
     take: 50,
   });
+  const balance = await prisma.balance.findUnique({
+    where: { userId: session.user.id },
+    select: { amount: true, locked: true },
+  });
 
   return (
     <div className="p-6 text-white">
-      <h2 className="text-lg font-semibold tracking-tight">Add money</h2>
+      <div className="max-w-md rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-emerald-300">Wallet balance</h2>
+        <p className="mt-2 text-3xl font-semibold text-emerald-200">
+          ₹{(balance?.amount ?? 0).toLocaleString()}
+        </p>
+        <p className="mt-1 text-xs text-emerald-300/80">Locked: ₹{(balance?.locked ?? 0).toLocaleString()}</p>
+      </div>
+
+      <h2 className="mt-6 text-lg font-semibold tracking-tight">Add money</h2>
       <p className="mt-1 text-sm text-zinc-400">Start an on-ramp deposit from your bank.</p>
       <AddMoneyForm />
 

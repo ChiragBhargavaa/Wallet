@@ -7,45 +7,111 @@ app.use(express.json());
 
 app.post("/bank-test", async (req: Request, res: Response) => {
   try {
-
     const paymentData = {
-      token: req.body.token,
-      userId: req.body.userId,
-      amount: req.body.amount
+      token: String(req.body.token ?? ""),
+      userId: String(req.body.userId ?? ""),
+      amount: Number(req.body.amount),
     };
 
-    await prisma.balance.update({
+    if (!paymentData.token || !paymentData.userId || !Number.isFinite(paymentData.amount) || paymentData.amount <= 0) {
+      return res.status(400).json({
+        message: "Invalid webhook payload",
+      });
+    }
+
+    const tx = await prisma.onRampTransaction.findUnique({
       where: {
-        userId: paymentData.userId
+        token: paymentData.token,
       },
-      data: {
-        amount: {
-          increment: paymentData.amount
-        }
-      }
+      select: {
+        userId: true,
+        amount: true,
+        status: true,
+      },
     });
+
+    if (!tx) {
+      return res.status(404).json({
+        message: "Transaction not found",
+      });
+    }
+
+    if (tx.status === "Success") {
+      return res.status(200).json({
+        message: "Already processed",
+      });
+    }
+
+    if (tx.userId !== paymentData.userId || tx.amount !== paymentData.amount) {
+      return res.status(400).json({
+        message: "Webhook payload does not match transaction",
+      });
+    }
+
+    await prisma.$transaction([
+      prisma.balance.upsert({
+        where: {
+          userId: paymentData.userId,
+        },
+        update: {
+          amount: {
+            increment: paymentData.amount,
+          },
+        },
+        create: {
+          userId: paymentData.userId,
+          amount: paymentData.amount,
+          locked: 0,
+        },
+      }),
+      prisma.onRampTransaction.update({
+        where: {
+          token: paymentData.token,
+        },
+        data: {
+          status: "Success",
+        },
+      }),
+    ]);
+
+    return res.status(200).json({
+      message: "captured",
+    });
+  } catch (e) {
+    console.error(e);
+
+    return res.status(411).json({
+      message: "Error while processing bank webhook",
+    });
+  }
+});
+
+app.post("/bank-failure", async (req: Request, res: Response) => {
+  try {
+    const token = String(req.body.token ?? "");
+    if (!token) {
+      return res.status(400).json({
+        message: "Token is required",
+      });
+    }
 
     await prisma.onRampTransaction.update({
       where: {
-        token: paymentData.token
+        token,
       },
       data: {
-        status: "Success"
+        status: "Failure",
       }
     });
 
-    res.status(200).json({
-      message: "captured"
+    return res.status(200).json({
+      message: "failed",
     });
-
   } catch (e) {
-
     console.error(e);
-
-    res.status(411).json({
-      message: "Error while processing bank webhook"
+    return res.status(411).json({
+      message: "Error while processing failed webhook",
     });
-
   }
 });
 

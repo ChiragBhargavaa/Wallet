@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { createOnRamp } from "../../lib/createOnRamp";
 
@@ -28,9 +29,12 @@ export function AddMoneyForm() {
     try {
       await createOnRamp(amount, provider);
       setMessage("Deposit started — status appears below as Processing until the bank confirms.");
+      toast.success("Deposit request submitted.");
       form.reset();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Something went wrong");
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+      setMessage(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setPending(false);
     }

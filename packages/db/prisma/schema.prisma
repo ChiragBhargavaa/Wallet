@@ -19,6 +19,9 @@ model User {
   updatedAt    DateTime  @updatedAt
   accounts     Account[]
   sessions     Session[]
+  transactions Transaction[]
+  balance      Balance?
+  onRampTransactions OnRampTransaction[]
 }
 
 model Account {
@@ -66,3 +69,27 @@ model Transaction {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Balance {
+  id     Int    @id @default(autoincrement())
+  userId String @unique
+  amount Int
+  locked Int
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum OnRampStatus {
+  Success
+  Failure
+  Processing
+}
+
+model OnRampTransaction {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  provider  String
+  amount    Int
+  status    OnRampStatus
+  startTime DateTime
+  userId    String
+  user User @relation(fields: [userId], references: [id])
+}

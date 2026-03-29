@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@repo/db/client";
 
 import { authOptions } from "../../lib/auth";
+import { reconcileStaleOnRampTransactions } from "../../lib/reconcileOnRamp";
 import { AddMoneyForm } from "./add-money-form";
 
 function statusStyle(status: string) {
@@ -22,6 +23,8 @@ export default async function UserHome() {
   if (!session?.user?.id) {
     redirect("/login");
   }
+
+  await reconcileStaleOnRampTransactions(session.user.id);
 
   const transactions = await prisma.onRampTransaction.findMany({
     where: { userId: session.user.id },

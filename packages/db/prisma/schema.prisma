@@ -22,6 +22,8 @@ model User {
   transactions Transaction[]
   balance      Balance?
   onRampTransactions OnRampTransaction[]
+  peerTransfersSent     PeerTransfer[] @relation("PeerTransferFrom")
+  peerTransfersReceived PeerTransfer[] @relation("PeerTransferTo")
 }
 
 model Account {
@@ -93,4 +95,17 @@ model OnRampTransaction {
   updatedAt DateTime @default(now()) @updatedAt
   userId    String
   user User @relation(fields: [userId], references: [id])
+}
+
+model PeerTransfer {
+  id         Int          @id @default(autoincrement())
+  token      String       @unique
+  amount     Int
+  status     OnRampStatus
+  startTime  DateTime
+  updatedAt  DateTime     @default(now()) @updatedAt
+  fromUserId String
+  toUserId   String
+  fromUser   User         @relation("PeerTransferFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User         @relation("PeerTransferTo", fields: [toUserId], references: [id], onDelete: Cascade)
 }

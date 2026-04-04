@@ -43,7 +43,7 @@ export function AddMoneyForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-[clamp(0.85rem,2vh,1.25rem)] flex w-full flex-col gap-[clamp(1rem,2vh,1.35rem)] rounded-[clamp(22px,3vw,36px)] bg-[#1c1c1c] p-[clamp(1.15rem,2.5vw,1.85rem)] ring-1 ring-white/[0.06]"
+      className="mt-[clamp(0.85rem,2vh,1.25rem)] flex w-full flex-col gap-[clamp(1rem,2vh,1.35rem)] rounded-[clamp(22px,3vw,36px)] bg-[#d0e1f9]/10 p-[clamp(1.15rem,2.5vw,1.85rem)] ring-1 ring-[#82e6ef]/22"
     >
       <label className="flex flex-col gap-[0.5vh] text-[clamp(0.8rem,1.4vw,0.875rem)] text-white">
         Amount (INR)
@@ -74,7 +74,7 @@ export function AddMoneyForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-[clamp(16px,2vw,24px)] bg-white px-[clamp(1rem,2.5vw,1.35rem)] py-[clamp(0.75rem,1.8vh,1rem)] text-[clamp(0.85rem,1.45vw,0.95rem)] font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
+        className="rounded-[clamp(16px,2vw,24px)] bg-[#82e6ef] px-[clamp(1rem,2.5vw,1.35rem)] py-[clamp(0.75rem,1.8vh,1rem)] text-[clamp(0.85rem,1.45vw,0.95rem)] font-semibold text-black transition hover:bg-[#82e6ef]/90 disabled:opacity-50"
       >
         {pending ? "Adding…" : "Add money"}
       </button>

@@ -6,9 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { IoMdSettings } from "react-icons/io";
-import { FaList } from "react-icons/fa6";
-import { GoHomeFill } from "react-icons/go";
+import { PeerTransferForm } from "./peer-transfer-form";
 
 export default function UserLayout({
   children,
@@ -36,18 +34,12 @@ export default function UserLayout({
 
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-black text-white">
-      <aside className="flex w-[5vw] min-w-16 shrink-0 flex-col items-center justify-center gap-[2vh] border-r border-white/[0.06] bg-black text-white/35">
-        <GoHomeFill className="h-8 w-8 transition hover:text-white/80" />
-        <FaList className="h-8 w-8 transition hover:text-white/80" />
-        <IoMdSettings className="h-8 w-8 transition hover:text-white/80" />
-      </aside>
-
-      {/* Overview column — layout only; live data stays on the home page */}
+      {/* Overview column — wallet summary and P2P transfer */}
       <div className="hidden min-h-0 w-[min(28vw,22rem)] shrink-0 flex-col gap-[clamp(1.25rem,2.5vh,2rem)] overflow-y-auto border-r border-white/[0.06] bg-[#1a1a1a] px-[clamp(1.1rem,2.2vw,1.75rem)] py-[clamp(1.5rem,3vh,2.5rem)] lg:flex">
         <h2 className="text-[clamp(1.35rem,2.4vw,1.75rem)] font-semibold tracking-tight text-white">
           Overview
         </h2>
-        <div className="rounded-[clamp(22px,3vw,36px)] bg-[#0c0c0c] p-[clamp(1.1rem,2vw,1.5rem)] shadow-[0_20px_40px_-20px_rgba(0,0,0,0.8)] ring-1 ring-white/[0.07]">
+        <div className="rounded-[clamp(22px,3vw,36px)] bg-[#0c0c0c] p-[clamp(1.1rem,2vw,1.5rem)] shadow-[0_20px_40px_-20px_rgba(0,0,0,0.8)]">
           <p className="text-[0.7rem] uppercase tracking-[0.14em] text-[#888888]">Wallet</p>
           <p className="mt-3 text-lg font-medium text-white">Digital balance</p>
           <div className="mt-5 flex items-center justify-between gap-3">
@@ -55,6 +47,15 @@ export default function UserLayout({
             <span className="h-9 w-12 rounded-[10px] bg-[hotpink]/35" aria-hidden />
           </div>
         </div>
+
+        <section className="min-w-0" aria-label="P2P transfer">
+          <h3 className="text-[clamp(1.05rem,2vw,1.35rem)] font-semibold text-white">P2P transfer</h3>
+          <p className="mt-2 text-[clamp(0.75rem,1.25vw,0.8125rem)] leading-snug text-[#888888]">
+            Search by email, pick a user, send from your available balance.
+          </p>
+          <PeerTransferForm />
+        </section>
+
         <div className="flex flex-wrap gap-2">
           {(["INR", "USD", "EUR"] as const).map((c) => (
             <span
@@ -80,7 +81,7 @@ export default function UserLayout({
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="rounded-[14px] border border-white/15 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+              className="rounded-[14px] border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/10"
             >
               Logout
             </button>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@repo/db/client";
 
 import { authOptions } from "../../lib/auth";
+import { reconcileStalePeerTransfers } from "../../lib/reconcilePeerTransfer";
 import { reconcileStaleOnRampTransactions } from "../../lib/reconcileOnRamp";
 import { AddMoneyForm } from "./add-money-form";
 
@@ -41,11 +42,24 @@ export default async function UserHome() {
   }
 
   await reconcileStaleOnRampTransactions(session.user.id);
+  await reconcileStalePeerTransfers(session.user.id);
 
   const transactions = await prisma.onRampTransaction.findMany({
     where: { userId: session.user.id },
     orderBy: { startTime: "desc" },
     take: 50,
+  });
+
+  const peerTransfers = await prisma.peerTransfer.findMany({
+    where: {
+      OR: [{ fromUserId: session.user.id }, { toUserId: session.user.id }],
+    },
+    orderBy: { startTime: "desc" },
+    take: 50,
+    include: {
+      fromUser: { select: { email: true, name: true } },
+      toUser: { select: { email: true, name: true } },
+    },
   });
   const balance = await prisma.balance.findUnique({
     where: { userId: session.user.id },
@@ -92,16 +106,6 @@ export default async function UserHome() {
           </div>
         </section>
 
-        <section
-          className="rounded-[clamp(22px,3vw,36px)] border border-[hotpink]/25 bg-[hotpink]/[0.08] px-[clamp(1.25rem,3vw,2rem)] py-[clamp(1.5rem,3.5vh,2.25rem)] text-center ring-1 ring-[hotpink]/15"
-          aria-label="P2P transfer"
-        >
-          <p className="text-[clamp(1.35rem,4vw,2rem)] font-semibold tracking-tight text-white">P2P transfer</p>
-          <p className="mx-auto mt-2 max-w-md text-[clamp(0.8rem,1.4vw,0.9rem)] text-white/85">
-            Send to other users from your balance.
-          </p>
-        </section>
-
         <section id="add-money" className="scroll-mt-4">
           <h2 className="text-[clamp(1.05rem,2vw,1.35rem)] font-semibold text-white">Add money</h2>
           <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.875rem)] text-[#888888]">
@@ -113,19 +117,78 @@ export default async function UserHome() {
         <section id="history" className="scroll-mt-4 pb-[1vh]">
           <h2 className="text-[clamp(1.05rem,2vw,1.35rem)] font-semibold text-white">Transaction history</h2>
           <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.875rem)] text-[#888888]">
-            On-ramp deposits and their status.
+            Peer transfers and on-ramp deposits with live status.
           </p>
 
-          {transactions.length === 0 ? (
-            <p className="mt-[clamp(1rem,2vh,1.5rem)] text-center text-[clamp(0.85rem,1.35vw,0.9rem)] text-[#888888]">
-              No transactions yet.
+          <h3 className="mt-[clamp(1.25rem,2.5vh,1.75rem)] text-[clamp(0.95rem,1.6vw,1.05rem)] font-semibold text-white">
+            Peer transfers
+          </h3>
+          {peerTransfers.length === 0 ? (
+            <p className="mt-[clamp(0.65rem,1.5vh,1rem)] text-[clamp(0.85rem,1.35vw,0.9rem)] text-[#888888]">
+              No peer transfers yet.
             </p>
           ) : (
-            <ul className="mt-[clamp(1rem,2vh,1.5rem)] grid gap-[clamp(0.85rem,1.8vw,1.25rem)] sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="mt-[clamp(0.65rem,1.5vh,1rem)] grid gap-[clamp(0.85rem,1.8vw,1.25rem)] sm:grid-cols-2 xl:grid-cols-3">
+              {peerTransfers.map((tx) => {
+                const outgoing = tx.fromUserId === session.user.id;
+                const counterparty = outgoing ? tx.toUser : tx.fromUser;
+                const label = outgoing ? "Sent to" : "Received from";
+                const amountPrefix = outgoing ? "−" : "+";
+                return (
+                  <li
+                    key={`peer-${tx.id}`}
+                    className={`flex flex-col gap-3 rounded-[clamp(18px,2.2vw,26px)] p-[clamp(1rem,2vw,1.35rem)] ring-1 ${
+                      outgoing
+                        ? "bg-[#f9d5a5]/08 ring-[hotpink]/18"
+                        : "bg-[#d0e1f9]/08 ring-[#82e6ef]/18"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${outgoing ? "bg-[hotpink]/35" : "bg-[#82e6ef]/35"}`}
+                        aria-hidden
+                      >
+                        {outgoing ? "→" : "←"}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[0.7rem] uppercase tracking-[0.1em] text-[#888888]">P2P</p>
+                        <p className="truncate font-semibold text-white">
+                          {label} {counterparty.email}
+                        </p>
+                        <p className="text-[0.75rem] text-[#888888]">{tx.startTime.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-white/[0.06] pt-3">
+                      <span
+                        className={`text-lg font-semibold ${outgoing ? "text-[hotpink]" : "text-[#82e6ef]"}`}
+                      >
+                        {amountPrefix}₹{tx.amount.toLocaleString()}
+                      </span>
+                      <span className={`text-sm font-medium ${statusStyle(tx.status)}`}>{tx.status}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <h3 className="mt-[clamp(1.5rem,3vh,2rem)] text-[clamp(0.95rem,1.6vw,1.05rem)] font-semibold text-white">
+            On-ramp deposits
+          </h3>
+          {transactions.length === 0 ? (
+            <p className="mt-[clamp(0.65rem,1.5vh,1rem)] text-center text-[clamp(0.85rem,1.35vw,0.9rem)] text-[#888888]">
+              No on-ramp deposits yet.
+            </p>
+          ) : (
+            <ul className="mt-[clamp(0.65rem,1.5vh,1rem)] grid gap-[clamp(0.85rem,1.8vw,1.25rem)] sm:grid-cols-2 xl:grid-cols-3">
               {transactions.map((tx, i) => (
                 <li
                   key={tx.id}
-                  className="flex flex-col gap-3 rounded-[clamp(18px,2.2vw,26px)] bg-[#1c1c1c] p-[clamp(1rem,2vw,1.35rem)] ring-1 ring-white/[0.05]"
+                  className={`flex flex-col gap-3 rounded-[clamp(18px,2.2vw,26px)] p-[clamp(1rem,2vw,1.35rem)] ring-1 ${
+                    i % 2 === 0
+                      ? "bg-[#d0e1f9]/08 ring-[#82e6ef]/18"
+                      : "bg-[#f9d5a5]/08 ring-[hotpink]/18"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -151,7 +214,7 @@ export default async function UserHome() {
           )}
         </section>
 
-        <div className="rounded-[clamp(22px,3vw,36px)] border border-white/15 bg-[#141414] px-[clamp(1.25rem,2.5vw,2rem)] py-[clamp(1.25rem,2.5vh,1.75rem)]">
+        <div className="rounded-[clamp(22px,3vw,36px)] bg-[#d4f1e5]/10 px-[clamp(1.25rem,2.5vw,2rem)] py-[clamp(1.25rem,2.5vh,1.75rem)] ring-1 ring-[#d4f1e5]/28">
           <p className="text-[clamp(0.95rem,1.6vw,1.1rem)] font-semibold text-white">On-ramp deposits</p>
           <p className="mt-2 max-w-2xl text-[clamp(0.8rem,1.35vw,0.875rem)] leading-relaxed text-[#888888]">
             New deposits appear here as Processing until your bank confirms. You can add money anytime from the form
